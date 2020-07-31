@@ -1,5 +1,4 @@
 from cloudtrace.utils cimport *
-# from cloudtrace.cpcap cimport *
 
 ctypedef struct pcapfix_global_hdr_s:
     unsigned int magic_number

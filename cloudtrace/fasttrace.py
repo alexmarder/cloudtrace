@@ -1,16 +1,27 @@
+import bz2
+import gzip
 import os
+import platform
+import time
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from multiprocessing.context import Process
+import socket
 from subprocess import Popen, PIPE, run
 from time import sleep
 from typing import List
 
 from scapy.config import conf
-from traceutils.file2 import fopen
+# from traceutils.file2 import fopen
 
 import cloudtrace.probe
 from cloudtrace.log import TraceLog
 
+def fopen(filename, mode='rt', *args, **kwargs):
+    if filename.endswith('.gz'):
+        return gzip.open(filename, mode, *args, **kwargs)
+    elif filename.endswith('.bz2'):
+        return bz2.open(filename, mode, *args, **kwargs)
+    return open(filename, mode, *args, **kwargs)
 
 def craftandsend(targets, pid, pps, minttl=1, maxttl=32, proto=1, log: TraceLog = None):
     iface, src, nexthop = conf.route.route(targets[0])
@@ -78,36 +89,53 @@ def main():
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-z', '--gzip', action='store_true')
     group.add_argument('-b', '--bzip2', action='store_true')
+    parser.add_argument('-r', '--remote')
+    parser.add_argument('-c', '--cycles', type=int, default=1)
     args = parser.parse_args()
 
-    pid = args.pid % 65535
-    print('Using pid: {}'.format(pid))
+    cycle = 1
+    while args.cycles == 0 or cycle < args.cycles:
+        pid = args.pid % 65535
+        print('Using pid: {}'.format(pid))
 
-    if args.input:
-        with fopen(args.input, 'rb') as f:
-            targets = [line.strip() for line in f]
-    else:
-        targets = [a.encode() for a in args.addr]
-    print('Targets: {:,d}'.format(len(targets)))
+        if args.input:
+            with fopen(args.input, 'rb') as f:
+                targets = [line.strip() for line in f]
+        else:
+            targets = [a.encode() for a in args.addr]
+        print('Targets: {:,d}'.format(len(targets)))
 
-    if args.output:
-        filename = args.output
-    else:
-        dirname, basename = os.path.split(args.default_output)
-        if dirname:
-            os.makedirs(dirname, exist_ok=True)
-        if basename:
-            basename += '.'
-        filename = os.path.join(dirname, '{}{}.{}.{}.pcap'.format(basename, args.proto, args.pps, pid))
-        if args.gzip:
-            filename += '.gz'
-        elif args.bzip2:
-            filename += '.bz2'
-        print('Saving to {}'.format(filename))
+        if args.output:
+            filename = args.output
+        else:
+            hostname = platform.node()
+            dirname, basename = os.path.split(args.default_output)
+            if dirname:
+                os.makedirs(dirname, exist_ok=True)
+            if basename:
+                basename += '.'
+            timestamp = int(time.time())
+            filename = os.path.join(dirname, '{}{}.{}.{}.{}.{}.pcap'.format(basename, hostname, timestamp, args.proto, args.pps, pid))
+            if args.gzip:
+                filename += '.gz'
+            elif args.bzip2:
+                filename += '.bz2'
+            print('Saving to {}'.format(filename))
 
-    if args.log:
-        log = TraceLog(args.log, pps=args.pps, pid=pid, proto=args.proto, targets=len(targets), output=filename)
-    else:
-        log = None
+        if args.log:
+            log = TraceLog(args.log, pps=args.pps, pid=pid, proto=args.proto, targets=len(targets), output=filename)
+        else:
+            log = None
 
-    trace(targets, filename, args.pps, args.proto, pid, log=log, waittime=args.wait)
+        trace(targets, filename, args.pps, args.proto, pid, log=log, waittime=args.wait)
+        if args.remote:
+            host, _, port = args.remote.partition(':')
+            port = int(port)
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((host, port))
+            s.send(filename.encode() + b'\n')
+            s.close()
+        try:
+            cycle += 1
+        except OverflowError:
+            cycle = 1
