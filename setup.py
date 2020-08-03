@@ -39,7 +39,7 @@ if use_cython:
 
 setup(
     name="cloudtrace",
-    version='0.0.23',
+    version='0.0.26',
     author='Alex Marder',
     # author_email='notlisted',
     description="Various packages for traceroute and BGP dump analysis.",

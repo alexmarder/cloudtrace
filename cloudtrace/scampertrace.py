@@ -1,9 +1,11 @@
 import os
 import platform
+import random
 import socket
 import subprocess
 import time
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from glob import glob
 
 from cloudtrace.fasttrace import fopen
 
@@ -27,17 +29,20 @@ def main():
     parser.add_argument('--tmp', default='.infile.tmp')
     args = parser.parse_args()
 
-    cycle = 1
+    cycle = 0
     while args.cycles == 0 or cycle < args.cycles:
         with open(args.tmp, 'w') as f:
             if args.input:
                 with fopen(args.input, 'rt') as g:
                     for line in g:
-                        f.write(line)
+                        addr, _, _ = line.rpartition('.')
+                        addr = '{}.{}'.format(addr, random.randint(0, 255))
+                        f.write('{}\n'.format(addr))
             else:
                 f.writelines('{}\n'.format(addr) for addr in args.addr)
         if args.output:
             filename = args.output
+            pattern = filename
         else:
             hostname = platform.node()
             dirname, basename = os.path.split(args.default_output)
@@ -51,17 +56,30 @@ def main():
                 filename += '.gz'
             elif args.bzip2:
                 filename += '.bz2'
-            print('Saving to {}'.format(filename))
+            pattern = os.path.join(dirname, '{}{}.{}.{}.{}.warts*'.format(basename, hostname, '*', args.proto, args.pps))
+            # print('Saving to {}'.format(filename))
         cmd = 'sudo scamper -O warts -p {} -c "trace -P icmp-paris -f {}" -f {} | gzip > {}'.format(args.pps, args.first_hop, args.tmp, filename)
         print(cmd)
-        subprocess.call(cmd, shell=True)
+        start = time.time()
+        subprocess.run(cmd, shell=True, check=False)
+        end = time.time()
+        secs = end - start
+        mins = secs / 60
+        hours = mins / 60
+        print('Duration: {:,.2f} s {:,.2f} m {:,.2f} h'.format(secs, mins, hours))
         if args.remote:
-            host, _, port = args.remote.partition(':')
-            port = int(port)
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.connect((host, port))
-            s.send(filename.encode() + b'\n')
-            s.close()
+            files = glob(pattern)
+            for f in files:
+                try:
+                    host, _, port = args.remote.partition(':')
+                    port = int(port)
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.connect((host, port))
+                    s.send(f.encode() + b'\n')
+                    s.close()
+                except:
+                    print('Unable to connect to {}.'.format(args.remote))
+                    pass
         try:
             cycle += 1
         except OverflowError:

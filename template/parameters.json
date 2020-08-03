@@ -1,0 +1,51 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "value": "eastus"
+        },
+        "networkInterfaceName": {
+            "value": "useast685"
+        },
+        "networkSecurityGroupId": {
+            "value": "/subscriptions/18671479-d925-4ec0-a3ca-d3565c6f2de1/resourceGroups/traces/providers/Microsoft.Network/networkSecurityGroups/eastus-nsg"
+        },
+        "subnetName": {
+            "value": "default"
+        },
+        "virtualNetworkId": {
+            "value": "/subscriptions/18671479-d925-4ec0-a3ca-d3565c6f2de1/resourceGroups/traces/providers/Microsoft.Network/virtualNetworks/tracesvnet767"
+        },
+        "publicIpAddressName": {
+            "value": "useast-ip"
+        },
+        "publicIpAddressType": {
+            "value": "Dynamic"
+        },
+        "publicIpAddressSku": {
+            "value": "Basic"
+        },
+        "virtualMachineName": {
+            "value": "useast"
+        },
+        "virtualMachineComputerName": {
+            "value": "useast"
+        },
+        "virtualMachineRG": {
+            "value": "traces"
+        },
+        "osDiskType": {
+            "value": "StandardSSD_LRS"
+        },
+        "virtualMachineSize": {
+            "value": "Standard_B1s"
+        },
+        "adminUsername": {
+            "value": "amarder"
+        },
+        "adminPublicKey": {
+            "value": null
+        }
+    }
+}
