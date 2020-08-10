@@ -15,7 +15,7 @@ cdef bint minsize(int proto) except -1:
         return size + sizeof(icmp) + 2
 
 cdef class Probe:
-    def __cinit__(self, uint16_t size=1500):
+    def __cinit__(self, uint16_t size=64):
         self.buf = calloc(1, sizeof(ethhdr) + size)
         self.etherhdr = <ethhdr *>self.buf
         self.iphdr = <ip *>(self.buf + sizeof(ethhdr))
@@ -194,7 +194,7 @@ cpdef void craft(list targets, uint16_t pid, file=None, int minttl=1, int maxttl
     ipproto = proto_to_num(proto)
     if size < minsize(ipproto):
         size = minsize(ipproto)
-    elif size < 1500:
+    elif size > 1500:
         size = 1500
     
     probe = create_probe(targets[0].decode(), ipproto, size, pid)
