@@ -1,0 +1,10 @@
+{
+    "ip2as": "/extra/ip2as/20200810.ip2as",
+    "as2org": {
+        "as2org": "/extra/ip2as/20200701.as-org2info.txt.gz"
+    },
+    "as-rels": {
+        "rels": "/extra/ip2as/20200801.as-rel.txt.bz2",
+        "cone": "/extra/ip2as/20200801.ppdc-ases.txt.bz2"
+    }
+}

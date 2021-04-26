@@ -1,3 +1,4 @@
+import random
 import struct
 import time
 
@@ -5,6 +6,8 @@ from scapy.arch import get_if_hwaddr
 from scapy.config import conf
 from scapy.layers.inet import IP as sIP, ICMP as sICMP
 from scapy.layers.l2 import getmacbyip, Ether
+
+from cloudtrace.trace.utils import fopen
 
 cdef bint minsize(int proto) except -1:
     cdef:
@@ -183,21 +186,22 @@ cpdef void write_pcap_header(f):
     f.write(<bytes>((<unsigned char *>gh)[:sizeof(pcapfix_global_hdr_s)]))
     free(gh)
 
-cpdef void craft(list targets, uint16_t pid, file=None, int minttl=1, int maxttl=32, int cycles=1, str proto='icmp', uint16_t size=64) except *:
+cpdef void craft(str targets, uint16_t pid, file=None, int minttl=1, int maxttl=32, int cycles=1, str proto='icmp', uint16_t size=64, bint randomize=False) except *:
     cdef:
         bytes dst
         uint8_t ttl
         Probe probe
         bytes pkt, caplen_line
         uint16_t ipproto
+        uint32_t num_targets = 0
 
     ipproto = proto_to_num(proto)
     if size < minsize(ipproto):
         size = minsize(ipproto)
     elif size > 1500:
         size = 1500
-    
-    probe = create_probe(targets[0].decode(), ipproto, size, pid)
+
+    probe = create_probe('0.0.0.0', ipproto, size, pid)
     caplen_line = fill_packet_header(size)
 
     if isinstance(file, str):
@@ -208,21 +212,31 @@ cpdef void craft(list targets, uint16_t pid, file=None, int minttl=1, int maxttl
         write_pcap_header(f)
         start = time.time()
         for _ in range(cycles):
-            for dst in targets:
-                probe.set_dst(dst)
-                for ttl in range(minttl, maxttl+1, 1):
-                    probe.set_ttl(ttl)
-                    probe.prep_trace(ttl)
-                    probe.prepare()
-                    pkt = probe.to_bytes()
-                    f.write(caplen_line)
-                    f.write(pkt)
+            with fopen(targets, 'rb') as g:
+                for line in g:
+                    if randomize:
+                        addr, _, _ = line.decode().rpartition('.')
+                        addr = '{}.{}'.format(addr, random.randint(0, 255))
+                        dst = '{}'.format(addr).encode()
+                        # targets.append('{}'.format(addr).encode())
+                    else:
+                        dst = line.strip()
+                        # targets.append(line.strip().encode())
+                    probe.set_dst(dst)
+                    for ttl in range(minttl, maxttl+1, 1):
+                        probe.set_ttl(ttl)
+                        probe.prep_trace(ttl)
+                        probe.prepare()
+                        pkt = probe.to_bytes()
+                        f.write(caplen_line)
+                        f.write(pkt)
+                    num_targets += 1
     finally:
         f.close()
     end = time.time()
     duration = end - start
     if duration > 0:
-        pps = len(targets) * 32 / duration
+        pps = num_targets * 32 / duration
         print('Time: {:,.2f} seconds. {:.2f} pps'.format(duration, pps))
     else:
         print('Too fast to time.')

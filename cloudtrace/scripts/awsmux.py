@@ -11,12 +11,15 @@ def main():
     parser.add_argument('-s', '--sheet')
     parser.add_argument('-e', '--exclude')
     parser.add_argument('-I', '--include')
+    parser.add_argument('-c', '--country')
     args, remaining = parser.parse_known_args()
     remaining = ' '.join(arg if ' ' not in arg else "'{}'".format(arg) for arg in remaining)
     print(remaining)
     exclude = set(args.exclude.split(',')) if args.exclude else set()
     include = set(args.include.split(',')) if args.include else None
     df = pd.read_excel(args.instances, sheet_name=args.sheet)
+    if args.country:
+        df = df[df.Country == args.country]
     if include is not None:
         df = df[df.Name.isin(include)]
     firsthops = defaultdict(list)
