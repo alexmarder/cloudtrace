@@ -1,4 +1,4 @@
-from cloudtrace.utils cimport *
+from cloudtrace.trace.utils cimport *
 
 ctypedef struct pcapfix_global_hdr_s:
     unsigned int magic_number
@@ -53,5 +53,5 @@ cpdef uint8_t proto_to_num(str proto);
 cpdef Probe create_probe(str dst, uint8_t ipproto, uint16_t size, uint16_t pid);
 cpdef bytes fill_packet_header(uint16_t size);
 cpdef void write_pcap_header(f);
-cpdef void craft(list targets, uint16_t pid, file=*, int minttl=*, int maxttl=*, int cycles=*, str proto=*, uint16_t size=*) except *;
+cpdef void craft(str targets, uint16_t pid, file=*, int minttl=*, int maxttl=*, int cycles=*, str proto=*, uint16_t size=*, bint randomize=*) except *;
 cpdef void ping(list targets, uint16_t pid, file=*, int numpings=*, int cycles=*, str proto=*, uint16_t size=*);
