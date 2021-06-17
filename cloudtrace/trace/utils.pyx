@@ -42,10 +42,3 @@ cdef void udptohost(udp *hdr):
     hdr.dest = ntohs(hdr.dest)
     hdr.len = ntohs(hdr.len)
     hdr.check = ntohs(hdr.check)
-
-def fopen(filename, mode='rt', *args, **kwargs):
-    if filename.endswith('.gz'):
-        return gzip.open(filename, mode, *args, **kwargs)
-    elif filename.endswith('.bz2'):
-        return bz2.open(filename, mode, *args, **kwargs)
-    return open(filename, mode, *args, **kwargs)

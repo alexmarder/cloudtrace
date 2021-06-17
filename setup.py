@@ -51,14 +51,14 @@ if use_cython:
 
 setup(
     name="cloudtrace",
-    version='1.1.4',
+    version='1.5.0',
     author='Alex Marder',
     # author_email='notlisted',
     description="Various packages for traceroute and BGP dump analysis.",
     url="https://github.com/alexmarder/traceutils",
     packages=find_packages(),
     # setup_requires=["cython", "traceutils"],
-    install_requires=['scapy'],
+    install_requires=['scapy', 'file2', 'pb_amarder'],
     # cmdclass={'build_ext': build_ext},
     ext_modules=extensions,
     entry_points={
@@ -72,7 +72,8 @@ setup(
             'awssync=cloudtrace.scripts.awssync:main',
             'awsmux=cloudtrace.scripts.awsmux:main',
             'awstargets=cloudtrace.scripts.awstargets:main',
-            'cloudtargets=cloudtrace.scripts.cloudtargets:main'
+            'cloudtargets=cloudtrace.scripts.cloudtargets:main',
+            'cloudshuffle=cloudtrace.scripts.shuffle:main'
         ],
     },
     zip_safe=False,

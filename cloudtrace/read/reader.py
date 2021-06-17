@@ -1,7 +1,7 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from multiprocessing import Pool
 
-from cloudtrace.progress import Progress
+from pb_amarder.bar import Progress
 
 from cloudtrace.read.convert import ConvertTrace
 
