@@ -7,7 +7,10 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import platform
 from datetime import date
 
-from cloudtrace.trace.fasttrace import fopen, remote_notify
+from file2 import fopen
+
+from cloudtrace.scripts.shuffle import shuf
+from cloudtrace.trace.fasttrace import remote_notify
 
 def new_filename(default_output, pps, ext, gzip=False, bzip2=False):
     hostname = platform.node()
@@ -44,18 +47,27 @@ def main():
     parser.add_argument('--remote')
     parser.add_argument('--cycles', type=int, default=1)
     parser.add_argument('--random', action='store_true')
+    parser.add_argument('--shuffle', action='store_true')
     parser.add_argument('-O', '--extension', choices=['warts', 'json'], default='json')
+    subparsers = parser.add_subparsers()
+    tparser = subparsers.add_parser('trace')
+    tparser.set_defaults(cmd='trace')
+    pparser = subparsers.add_parser('ping')
+    pparser.set_defaults(cmd='ping')
     args, remaining = parser.parse_known_args()
 
-    sccmd = ' '.join(remaining)
+    sccmd = args.cmd + ' ' + ' '.join(remaining)
 
     cycle = 0
     while args.cycles == 0 or cycle < args.cycles:
+        infile = args.input
+        if args.shuffle:
+            shuf(infile, inplace=True)
         f = tempfile.NamedTemporaryFile(mode='wt', delete=False)
         tmp = f.name
         try:
             if args.input:
-                with fopen(args.input, 'rt') as g:
+                with fopen(infile, 'rt') as g:
                     for line in g:
                         if args.random:
                             addr, _, _ = line.rpartition('.')

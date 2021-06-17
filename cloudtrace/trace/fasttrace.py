@@ -1,8 +1,7 @@
-import bz2
-import gzip
+# import bz2
+# import gzip
 import os
 import platform
-import random
 import tempfile
 import time
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
@@ -12,12 +11,13 @@ from multiprocessing.context import Process
 import socket
 from subprocess import Popen, PIPE, run
 from time import sleep
-from typing import List
 
 from scapy.config import conf
 
 import cloudtrace.trace.probe
 import cloudtrace.read.reader
+from cloudtrace.scripts.shuffle import shuf
+
 
 def new_filename(default_output, proto, pps, ext, gzip=False, bzip2=False):
     hostname = platform.node()
@@ -55,13 +55,6 @@ def remote_notify(pattern, remote):
         except:
             print('Unable to connect to {}.'.format(remote))
             pass
-
-def fopen(filename, mode='rt', *args, **kwargs):
-    if filename.endswith('.gz'):
-        return gzip.open(filename, mode, *args, **kwargs)
-    elif filename.endswith('.bz2'):
-        return bz2.open(filename, mode, *args, **kwargs)
-    return open(filename, mode, *args, **kwargs)
 
 def craftandsend(targets: str, pid, pps, minttl=1, maxttl=32, proto=1, timer='nano', randomize=False):
     iface, src, nexthop = conf.route.route('0.0.0.0')
@@ -134,6 +127,7 @@ def main():
     parser.add_argument('-c', '--cycles', type=int, default=1)
     parser.add_argument('-T', '--timer', default='nano', choices=['nano', 'select', 'ioport', 'gtod'])
     parser.add_argument('-R', '--random', action='store_true')
+    parser.add_argument('-S', '--shuffle', action='store_true')
     parser.add_argument('--read', action='store_true')
     # parser.add_argument('--tmp', default='.infile.tmp')
     args = parser.parse_args()
@@ -147,31 +141,15 @@ def main():
         f.close()
     else:
         infile = args.input
-    # with open(infile) as f:
-    #     for line in f:
-    #         print(line.strip())
+
+    if args.shuffle:
+        shuf(infile, inplace=True)
 
     try:
         cycle = 0
         while args.cycles == 0 or cycle < args.cycles:
             pid = args.pid % 65535
             print('Using pid: {}'.format(pid))
-
-            # if args.input:
-            #     targets = []
-            #     with fopen(args.input, 'rt') as f:
-            #         # targets = [line.strip() for line in f]
-            #         for line in f:
-            #             if args.random:
-            #                 addr, _, _ = line.rpartition('.')
-            #                 addr = '{}.{}'.format(addr, random.randint(0, 255))
-            #                 targets.append('{}'.format(addr).encode())
-            #             else:
-            #                 targets.append(line.strip().encode())
-            #     # print(targets)
-            # else:
-            #     targets = [a.encode() for a in args.addr]
-            # print('Targets: {:,d}'.format(len(targets)))
 
             if args.output:
                 filename = args.output

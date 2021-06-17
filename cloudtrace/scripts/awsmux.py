@@ -8,7 +8,9 @@ import pandas as pd
 def main():
     parser = ArgumentParser()
     parser.add_argument('-i', '--instances', required=True)
-    parser.add_argument('-s', '--sheet')
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-s', '--sheet')
+    group.add_argument('-S', '--all-sheets', action='store_true')
     parser.add_argument('-e', '--exclude')
     parser.add_argument('-I', '--include')
     parser.add_argument('-c', '--country')
@@ -17,11 +19,16 @@ def main():
     print(remaining)
     exclude = set(args.exclude.split(',')) if args.exclude else set()
     include = set(args.include.split(',')) if args.include else None
-    df = pd.read_excel(args.instances, sheet_name=args.sheet)
-    if args.country:
-        df = df[df.Country == args.country]
-    if include is not None:
-        df = df[df.Name.isin(include)]
+    sheets = args.sheet.split(',') if not args.all_sheets else ['aws', 'azure', 'gcp']
+    dfs = []
+    for sheet in sheets:
+        df = pd.read_excel(args.instances, sheet_name=sheet)
+        if args.country:
+            df = df[df.Country == args.country]
+        if include is not None:
+            df = df[df.Name.isin(include)]
+        dfs.append(df)
+    df = pd.concat(dfs, ignore_index=True)
     firsthops = defaultdict(list)
     for row in df[pd.notnull(df.Host)].itertuples():
         if row.Host in exclude or row.Name in exclude:

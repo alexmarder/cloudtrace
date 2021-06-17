@@ -7,9 +7,14 @@ import pandas as pd
 
 def excel_addrs(args):
     exclude = set(args.exclude.split(',')) if args.exclude else set()
-    df = pd.read_excel(args.instances, sheet_name=args.sheet)
-    if args.country:
-        df = df[df.Country == args.country]
+    sheets = args.sheet.split(',') if not args.all_sheets else ['aws', 'azure', 'gcp']
+    dfs = []
+    for sheet in sheets:
+        df = pd.read_excel(args.instances, sheet_name=sheet)
+        if args.country:
+            df = df[df.Country == args.country]
+        dfs.append(df)
+    df = pd.concat(dfs, ignore_index=True)
     hosts = []
     for row in df[pd.notnull(df.Host)].itertuples():
         if row.Name not in exclude:
@@ -33,7 +38,9 @@ def main():
     subparsers = parser.add_subparsers()
     excel = subparsers.add_parser('excel')
     excel.add_argument('-i', '--instances', required=True)
-    excel.add_argument('-s', '--sheet')
+    group = excel.add_mutually_exclusive_group(required=True)
+    group.add_argument('-s', '--sheet')
+    group.add_argument('-S', '--all-sheets', action='store_true')
     excel.add_argument('-e', '--exclude')
     excel.add_argument('-c', '--country')
     excel.set_defaults(func=excel_addrs)
@@ -48,7 +55,8 @@ def main():
     hosts = args.func(args)
     procs = []
     for host, name in hosts:
-        cmd = '{} {}'.format(copycmd, remaining.replace('%MON', host).replace('%NAME', name))
+        ip = host.rpartition('@')[2]
+        cmd = '{} {}'.format(copycmd, remaining.replace('%MON', host).replace('%NAME', name).replace('%IP', ip))
         # cmd = cmd.replace('%MON', host).replace('%NAME', name)
         print(cmd)
         p = Popen(cmd, shell=True)

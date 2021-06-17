@@ -5,7 +5,9 @@ import tempfile
 import time
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
-from cloudtrace.trace.fasttrace import fopen, new_filename, remote_notify
+from file2 import fopen
+
+from cloudtrace.trace.fasttrace import new_filename, remote_notify
 
 def cmd_trace(proto, pps, first_hop, tmp, write, ftype):
     if proto == 'icmp':
