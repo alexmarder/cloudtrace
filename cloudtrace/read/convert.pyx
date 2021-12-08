@@ -18,7 +18,7 @@ cdef:
     public uint8_t TRACE_STOP_HOPLIMIT = 5
 
 cdef class Convert:    
-    def __cinit__(self, str infile, str outfile):
+    def __cinit__(self, str infile, str outfile, str hostname=None):
         self.total = 0
         self.nprobes = 0
         self.nreplies = 0
@@ -36,6 +36,7 @@ cdef class Convert:
         # print(outfile)
         self.writefile = fopen(outfile, 'wt')
         self.more = True
+        self.hostname = hostname
 
     def __dealloc__(self):
         pass
@@ -308,6 +309,8 @@ cdef class ConvertTrace(Convert):
             uint8_t icmptype
             Reply reply
             uint32_t loop = 0
+        header = {"type":"cycle-start", "list_name":"default", "id":0, "hostname":self.hostname, "start_time":0}
+        self.writefile.write(json.dumps(header) + '\n')
         while True:
             loop += 1
             if verbose > 0 and loop % 1000000 == 0:
@@ -345,6 +348,8 @@ cdef class ConvertTrace(Convert):
                 if ttl > trace.hop_count and trace.stop_reason == TRACE_STOP_GAPLIMIT:
                     trace.hop_count = ttl
         pcap.read_all()
+        footer = {"type":"cycle-stop", "list_name":"default", "id":0, "hostname":self.hostname, "stop_time":0}
+        self.writefile.write(json.dumps(footer) + '\n')
         # print('closing')
         self.close()
         # print('done')

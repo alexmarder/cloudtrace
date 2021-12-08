@@ -5,6 +5,8 @@ from subprocess import Popen, TimeoutExpired
 
 import pandas as pd
 
+from cloudtrace import __version__
+
 def excel_addrs(args):
     exclude = set(args.exclude.split(',')) if args.exclude else set()
     sheets = args.sheet.split(',') if not args.all_sheets else ['aws', 'azure', 'gcp']
@@ -12,14 +14,14 @@ def excel_addrs(args):
     for sheet in sheets:
         df = pd.read_excel(args.instances, sheet_name=sheet)
         if args.country:
-            df = df[df.Country == args.country]
+            df = df[df.country == args.country]
         dfs.append(df)
     df = pd.concat(dfs, ignore_index=True)
     hosts = []
-    for row in df[pd.notnull(df.Host)].itertuples():
-        if row.Name not in exclude:
-            host = '{}@{}'.format(row.User, row.Host)
-            hosts.append((host, row.Name))
+    for row in df[pd.notnull(df.addr)].itertuples():
+        if row.name not in exclude and row.addr not in exclude:
+            host = '{}@{}'.format(row.user, row.addr)
+            hosts.append((host, row.hostname))
     return hosts
 
 def list_addrs(args):
@@ -47,6 +49,7 @@ def main():
     addrs = subparsers.add_parser('addrs')
     addrs.add_argument('-a', '--addrs', required=True)
     addrs.set_defaults(func=list_addrs)
+    parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
     args, remaining = parser.parse_known_args()
     remaining = ' '.join(remaining)
     copycmd = 'rsync -e "ssh -o StrictHostKeyChecking=no"'

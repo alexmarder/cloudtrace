@@ -19,7 +19,7 @@ ctypedef probe_id_s probe_id
 
 cdef class Convert:
     cdef:
-        str infile, outfile
+        str infile, outfile, hostname
         public long total, nprobes, nreplies, skipped, pidprobe, pidreply, ttlhigh, wrote
         # LinkedList times
         LinkedList2 times

@@ -17,6 +17,7 @@ from scapy.config import conf
 import cloudtrace.trace.probe
 import cloudtrace.read.reader
 from cloudtrace.scripts.shuffle import shuf
+from cloudtrace import __version__
 
 
 def new_filename(default_output, proto, pps, ext, gzip=False, bzip2=False):
@@ -130,9 +131,9 @@ def main():
     parser.add_argument('-S', '--shuffle', action='store_true')
     parser.add_argument('--read', action='store_true')
     # parser.add_argument('--tmp', default='.infile.tmp')
+    parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
 
-    print('fasttrace version: {}'.format('0.2.5'))
     if args.addr:
         f = tempfile.NamedTemporaryFile(mode='wt', delete=False)
         infile = f.name

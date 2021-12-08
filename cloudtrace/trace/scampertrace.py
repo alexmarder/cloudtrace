@@ -8,6 +8,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from file2 import fopen
 
 from cloudtrace.trace.fasttrace import new_filename, remote_notify
+from cloudtrace import __version__
 
 def cmd_trace(proto, pps, first_hop, tmp, write, ftype):
     if proto == 'icmp':
@@ -58,6 +59,7 @@ def main():
     ping.add_argument('-c', '--count', type=int, default=4)
     ping.add_argument('-o', '--replycount', type=int)
     ping.set_defaults(method='ping')
+    parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
 
     cycle = 0

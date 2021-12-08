@@ -4,6 +4,8 @@ import sys
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
 
+exec(open('cloudtrace/version.py').read())
+
 print(sys.argv)
 if 'build_ext' in sys.argv:
     from Cython.Distutils import build_ext
@@ -51,7 +53,7 @@ if use_cython:
 
 setup(
     name="cloudtrace",
-    version='1.5.0',
+    version=__version__,
     author='Alex Marder',
     # author_email='notlisted',
     description="Various packages for traceroute and BGP dump analysis.",
@@ -73,7 +75,10 @@ setup(
             'awsmux=cloudtrace.scripts.awsmux:main',
             'awstargets=cloudtrace.scripts.awstargets:main',
             'cloudtargets=cloudtrace.scripts.cloudtargets:main',
-            'cloudshuffle=cloudtrace.scripts.shuffle:main'
+            'cloudshuffle=cloudtrace.scripts.shuffle:main',
+            'aws-cli=cloudtrace.scripts.aws_cli:main',
+            'azure-cli=cloudtrace.scripts.azure_cli:main',
+            'gcp-cli=cloudtrace.scripts.gcp_cli:main'
         ],
     },
     zip_safe=False,
