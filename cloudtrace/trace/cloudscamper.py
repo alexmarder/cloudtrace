@@ -9,7 +9,7 @@ from datetime import date
 
 from file2 import fopen
 
-from cloudtrace.scripts.shuffle import shuf
+from cloudtrace.trace.shuffle import shuf
 from cloudtrace.trace.fasttrace import remote_notify
 from cloudtrace import __version__
 

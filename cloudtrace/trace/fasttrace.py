@@ -18,7 +18,7 @@ from scapy.config import conf
 
 import cloudtrace.trace.probe
 import cloudtrace.read.reader
-from cloudtrace.scripts.shuffle import shuf
+from cloudtrace.trace.shuffle import shuf
 from cloudtrace import __version__
 
 

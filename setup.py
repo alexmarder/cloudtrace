@@ -34,8 +34,6 @@ extensions_names = {
     'cloudtrace.read.convert': ['cloudtrace/read/convert' + ext_pyx],
     'cloudtrace.read.linkedlist': ['cloudtrace/read/linkedlist' + ext_pyx],
     'cloudtrace.read.reader': ['cloudtrace/read/reader' + ext_py],
-
-    'cloudtrace.pickup': ['cloudtrace/pickup' + ext_py]
 }
 
 extensions = [Extension(k, v) for k, v in extensions_names.items()]
@@ -59,7 +57,7 @@ setup(
     description="Various packages for traceroute and BGP dump analysis.",
     url="https://github.com/alexmarder/traceutils",
     packages=find_packages(),
-    # setup_requires=["cython", "traceutils"],
+    # setup_requires=["cython"],
     install_requires=['scapy', 'file2', 'pb_amarder'],
     # cmdclass={'build_ext': build_ext},
     ext_modules=extensions,
@@ -68,21 +66,13 @@ setup(
             'fasttrace=cloudtrace.trace.fasttrace:main',
             'scampertrace=cloudtrace.trace.scampertrace:main',
             'cloudscamper=cloudtrace.trace.cloudscamper:main',
+            'cloudshuffle=cloudtrace.scripts.trace:main',
             'fastread=cloudtrace.read.reader:main',
-            'pickup=cloudtrace.pickup:main',
-            'ct-randomize=cloudtrace.trace.randomize:main',
-            'awssync=cloudtrace.scripts.awssync:main',
-            'awsmux=cloudtrace.scripts.awsmux:main',
-            'awstargets=cloudtrace.scripts.awstargets:main',
-            'cloudtargets=cloudtrace.scripts.cloudtargets:main',
-            'cloudshuffle=cloudtrace.scripts.shuffle:main',
-            'aws-cli=cloudtrace.scripts.aws_cli:main',
-            'azure-cli=cloudtrace.scripts.azure_cli:main',
-            'gcp-cli=cloudtrace.scripts.gcp_cli:main'
+            'ct-randomize=cloudtrace.trace.randomize:main'
         ],
     },
     zip_safe=False,
     package_data=package_data,
     include_package_data=True,
-    python_requires='>3.6'
+    python_requires='>3.6,<3.9'
 )
