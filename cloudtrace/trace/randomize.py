@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from multiprocessing import Pool
 import pandas as pd
 
-from cloudtrace.trace.utils import fopen
+from file2 import fopen
 
 _infile = None
 
