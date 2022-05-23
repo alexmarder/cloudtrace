@@ -114,3 +114,5 @@ cdef struct ip6_s:
     ip6_un ip6_ctlun
     uint8_t ip6_src[16]
     uint8_t ip6_dst[16]
+
+cpdef float rtt_from_split(uint32_t rxsec, uint32_t rxusec, uint32_t txsec, uint32_t txusec, uint32_t divisor);

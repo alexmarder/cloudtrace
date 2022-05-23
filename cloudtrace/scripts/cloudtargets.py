@@ -9,6 +9,8 @@ from traceutils.file2.file2 import fopen
 from traceutils.progress.bar import Progress
 from traceutils.radix.ip2as import create_private
 
+from cloudtrace import __version__
+
 _targets = None
 _limit = None
 
@@ -71,6 +73,7 @@ def main():
     parser.add_argument('-f', '--filename', required=True)
     parser.add_argument('-o', '--output', required=True)
     parser.add_argument('-e', '--exclude')
+    parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
     all24 = not args.prefix
     targets = create_targets(args.filename, all24, args.exclude)

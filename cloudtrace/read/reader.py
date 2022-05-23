@@ -1,3 +1,4 @@
+import platform
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from multiprocessing import Pool
 
@@ -22,9 +23,8 @@ def pattern(infile, gzip=False, bzip2=False):
         outfile += '.bz2'
     return outfile
 
-def convert(args):
-    infile, outfile = args
-    c = ConvertTrace(infile, outfile)
+def convert(infile, outfile, hostname):
+    c = ConvertTrace(infile, outfile, hostname)
     c.convert_trace(fix=fix, verbose=verbose)
     if verbose:
         print(c)
@@ -41,6 +41,7 @@ def main():
     parser.add_argument('-p', '--processes', default=1, type=int)
     parser.add_argument('-i', '--infiles', nargs='+')
     parser.add_argument('-I', '--file')
+    parser.add_argument('-H', '--hostname', default=platform.node())
     args = parser.parse_args()
 
     fix = not args.raw
@@ -66,14 +67,18 @@ def main():
 
     # print(outfiles)
 
-    pb = Progress(len(infiles), message='Creating traceroutes')
-    if args.processes == 1:
-        for t in pb.iterator(zip(args.infiles, outfiles)):
-            convert(t)
-    else:
-        with Pool(max(args.processes, len(infiles))) as pool:
-            for _ in pb.iterator(pool.imap_unordered(convert, zip(infiles, outfiles))):
-                pass
+    pb = Progress(len(infiles), message='Creating traceroutes for {}'.format(args.hostname))
+    for infile, outfile in pb.iterator(zip(infiles, outfiles)):
+        convert(infile, outfile, args.hostname)
+
+    # pb = Progress(len(infiles), message='Creating traceroutes')
+    # if args.processes == 1:
+    #     for t in pb.iterator(zip(args.infiles, outfiles)):
+    #         convert(t)
+    # else:
+    #     with Pool(max(args.processes, len(infiles))) as pool:
+    #         for _ in pb.iterator(pool.imap_unordered(convert, zip(infiles, outfiles))):
+    #             pass
 
 
 if __name__ == '__main__':

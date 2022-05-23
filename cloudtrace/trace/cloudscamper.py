@@ -11,6 +11,7 @@ from file2 import fopen
 
 from cloudtrace.scripts.shuffle import shuf
 from cloudtrace.trace.fasttrace import remote_notify
+from cloudtrace import __version__
 
 def new_filename(default_output, pps, ext, gzip=False, bzip2=False):
     hostname = platform.node()
@@ -54,6 +55,7 @@ def main():
     tparser.set_defaults(cmd='trace')
     pparser = subparsers.add_parser('ping')
     pparser.set_defaults(cmd='ping')
+    parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
     args, remaining = parser.parse_known_args()
 
     sccmd = args.cmd + ' ' + ' '.join(remaining)

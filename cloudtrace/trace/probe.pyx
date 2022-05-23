@@ -7,7 +7,7 @@ from scapy.config import conf
 from scapy.layers.inet import IP as sIP, ICMP as sICMP
 from scapy.layers.l2 import getmacbyip, Ether
 
-from cloudtrace.trace.utils import fopen
+from file2 import fopen
 
 cdef bint minsize(int proto) except -1:
     cdef:

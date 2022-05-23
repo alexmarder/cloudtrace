@@ -39,3 +39,6 @@ cdef void udptohost(udp *hdr):
     hdr.dest = ntohs(hdr.dest)
     hdr.len = ntohs(hdr.len)
     hdr.check = ntohs(hdr.check)
+
+cpdef float rtt_from_split(uint32_t rxsec, uint32_t rxusec, uint32_t txsec, uint32_t txusec, uint32_t divisor):
+    return (rxsec + (rxusec / divisor)) - (txsec + (txusec / divisor))

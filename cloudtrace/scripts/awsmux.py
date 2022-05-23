@@ -5,6 +5,8 @@ from subprocess import Popen
 
 import pandas as pd
 
+from cloudtrace import __version__
+
 def main():
     parser = ArgumentParser()
     parser.add_argument('-i', '--instances', required=True)
@@ -14,6 +16,7 @@ def main():
     parser.add_argument('-e', '--exclude')
     parser.add_argument('-I', '--include')
     parser.add_argument('-c', '--country')
+    parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
     args, remaining = parser.parse_known_args()
     remaining = ' '.join(arg if ' ' not in arg else "'{}'".format(arg) for arg in remaining)
     print(remaining)
@@ -24,16 +27,16 @@ def main():
     for sheet in sheets:
         df = pd.read_excel(args.instances, sheet_name=sheet)
         if args.country:
-            df = df[df.Country == args.country]
+            df = df[df.country == args.country]
         if include is not None:
-            df = df[df.Name.isin(include)]
+            df = df[df.name.isin(include)]
         dfs.append(df)
     df = pd.concat(dfs, ignore_index=True)
     firsthops = defaultdict(list)
-    for row in df[pd.notnull(df.Host)].itertuples():
-        if row.Host in exclude or row.Name in exclude:
+    for row in df[pd.notnull(df.addr)].itertuples():
+        if row.addr in exclude or row.name in exclude:
             continue
-        host = '{}@{}'.format(row.User, row.Host)
+        host = '{}@{}'.format(row.user, row.addr)
         firsthops[row._asdict().get('First', 1)].append(host)
     # hosts = ['{}@{}'.format(row.User, row.Host) for row in df.itertuples()]
     for first, hosts in firsthops.items():
