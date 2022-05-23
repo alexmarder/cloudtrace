@@ -21,12 +21,14 @@ cdef class Packet:
     cpdef uint16_t get_pid(self);
     cpdef uint16_t ipid(self);
     cdef void set_ip(self, ip *iphdr);
+    cpdef bytes get_dst(self);
 
 cdef class ICMPProbe(Packet):
     cdef:
         icmp *icmphdr
 
     cpdef uint8_t get_type(self);
+    cpdef uint8_t get_code(self);
     cdef void set_icmp(self, ip *iphdr, icmp *hdr);
 
 cdef class UDPProbe(Packet):
@@ -45,6 +47,10 @@ cdef class Reply(Packet):
     cdef void create_hop(self, hop_t *th);
     cpdef uint16_t probe_ipid(self);
     cpdef uint16_t probe_size(self);
+    cpdef uint8_t reply_ttl(self);
+    cpdef uint8_t get_type(self);
+    cpdef uint8_t get_code(self);
+    cpdef uint8_t get_icmp_q_ttl(self);
     cdef void set_icmp(self, ip *iphdr, icmp *hdr);
 
 cdef class EchoReply(Reply):

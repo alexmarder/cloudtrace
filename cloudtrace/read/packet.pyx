@@ -36,6 +36,12 @@ cdef class Packet:
     cpdef uint16_t ipid(self):
         return self.iphdr.id
 
+    cpdef bytes get_dst(self):
+        cdef:
+            char dst[16]
+        inet_ntop(AF_INET, self.get_dst_c(), dst, INET_ADDRSTRLEN)
+        return <bytes> dst
+
 cdef class ICMPProbe(Packet):
     def __cinit__(self):
         self.ptype = ICMP_PROBE
@@ -54,6 +60,9 @@ cdef class ICMPProbe(Packet):
 
     cpdef uint8_t get_type(self):
         return self.icmphdr.type
+
+    cpdef uint8_t get_code(self):
+        return self.icmphdr.code
 
     cdef void set_icmp(self, ip *iphdr, icmp *hdr):
         cdef:
@@ -112,6 +121,18 @@ cdef class Reply(Packet):
     cpdef uint16_t probe_size(self):
         raise NotImplementedError()
 
+    cpdef uint8_t reply_ttl(self):
+        return self.iphdr.ip_ttl
+
+    cpdef uint8_t get_type(self):
+        return self.icmphdr.type
+
+    cpdef uint8_t get_code(self):
+        return self.icmphdr.code
+
+    cpdef uint8_t get_icmp_q_ttl(self):
+        raise NotImplementedError()
+
     cdef void set_icmp(self, ip *iphdr, icmp *hdr):
         self.set_ip(iphdr)
         memcpy(self.icmphdr, hdr, sizeof(icmp))
@@ -152,6 +173,9 @@ cdef class EchoReply(Reply):
 
     cpdef uint16_t probe_size(self):
         return self.iphdr.ip_len
+
+    cpdef uint8_t get_icmp_q_ttl(self):
+        return 1
 
     cdef void set_icmp(self, ip *iphdr, icmp *hdr):
         self.set_ip(iphdr)
@@ -225,10 +249,13 @@ cdef class ICMPReply(Reply):
     cpdef uint16_t probe_ipid(self):
         return self.probe.ipid()
 
+    cpdef uint8_t get_icmp_q_ttl(self):
+        return self.iphdr.ip_ttl
+
     cpdef void set_probe(self, Packet probe):
         self.probe = probe
 
-cdef Packet disassemble_packet(char *packet, int incl_len):
+cpdef Packet disassemble_packet(char *packet, int incl_len):
     cdef:
         char *packet_orig = packet
         ip *iphdr

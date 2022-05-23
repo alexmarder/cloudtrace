@@ -1,9 +1,11 @@
 # import bz2
 # import gzip
+import json
 import os
 import platform
 import tempfile
 import time
+import urllib.request
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from datetime import date
 from glob import glob
@@ -162,7 +164,26 @@ def main():
                 dirname, basename = os.path.split(args.default_output)
                 pattern = os.path.join(dirname, '{}.{}*'.format(basename, ext))
 
-            trace(infile, filename, args.pps, args.proto, pid, waittime=args.wait, timer=args.timer, read=args.read, randomize=args.random)
+            name = platform.node()
+            addr = urllib.request.urlopen('https://api.ipify.org/').read().decode('utf8')
+
+            sidefile = (filename.rpartition('.')[0] if filename.endswith('.gz') or filename.endswith('.bz2') else filename) + '.sidecar'
+            with open(sidefile, 'wt') as f:
+                header = {
+                    "type": "cycle-start", "list_name": "default", "id": pid, "hostname": name,
+                    "start_time": time.time(), 'addr': addr
+                }
+                f.write(json.dumps(header) + '\n')
+
+                trace(infile, filename, args.pps, args.proto, pid, waittime=args.wait, timer=args.timer, read=args.read, randomize=args.random)
+
+                stoptime = time.time()
+
+                footer = {
+                    "type": "cycle-stop", "list_name": "default", "id": pid, "hostname": name,
+                    "stop_time": stoptime, 'addr': addr
+                }
+                f.write(json.dumps(footer) + '\n')
 
             if args.remote:
                 remote_notify(pattern, args.remote)
